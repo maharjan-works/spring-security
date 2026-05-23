@@ -5,8 +5,8 @@ spring:
     name: authify
 
   datasource:
-    url: jdbc:mysql://localhost:3306/authify?createDatabaseIfNotExists=true
-    driver-class-name: com.mysql.cj.
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    url: jdbc:mysql://localhost:3306/authify?createDatabaseIfNotExist=true
     username: root
     password: root
 
