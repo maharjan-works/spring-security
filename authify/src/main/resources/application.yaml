@@ -1,0 +1,17 @@
+kind: Application
+
+spring:
+  application:
+    name: authify
+
+  datasource:
+    url: jdbc:mysql://localhost:3306/authify?createDatabaseIfNotExists=true
+    driver-class-name: com.mysql.cj.
+    username: root
+    password: root
+
+#  jpa properties
+  jpa:
+    hibernate:
+      ddl-auto: update
+
