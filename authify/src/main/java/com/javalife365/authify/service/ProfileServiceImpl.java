@@ -8,22 +8,52 @@ import com.javalife365.authify.io.ProfileResponse;
 import com.javalife365.authify.mapper.ProfileMapper;
 import com.javalife365.authify.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+
+import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
 public class ProfileServiceImpl implements ProfileService{
 
     private final UserRepository userRepository;
+    private final PasswordEncoder passwordEncoder;
 
     @Override
     public ProfileResponse createProfile(ProfileRequest request) {
         if (!userRepository.existsByEmail(request.getEmail())){
-            UserEntity newProfile = ProfileMapper.mapToUserEntity(request);
+            UserEntity newProfile = this.convertToUserEntity(request);
             newProfile = userRepository.save(newProfile);
-            return ProfileMapper.mapToProfileResponse(newProfile);
+            return convertToProfileResponse(newProfile);
         }
         throw new EmailAlreadyExistsException("Email Already Exists");
+    }
 
+
+
+    private UserEntity convertToUserEntity(ProfileRequest request) {
+        return UserEntity.builder()
+                .userId(UUID.randomUUID().toString())
+                .firstName(request.getFirstName())
+                .lastName(request.getLastName())
+                .email(request.getEmail())
+                .password(passwordEncoder.encode(request.getPassword()))
+                .isAccountVerified(false)
+                .verifyOtp(null)
+                .verifyOtpExpiredAt(0L)
+                .resetOtp(null)
+                .resetOtpExpireAt(0L)
+                .build();
+    }
+
+    private ProfileResponse convertToProfileResponse(UserEntity user) {
+        return ProfileResponse.builder()
+                .userId(user.getUserId())
+                .firstName(user.getFirstName())
+                .lastName(user.getLastName())
+                .email(user.getEmail())
+                .isAccountVerified(user.getIsAccountVerified())
+                .build();
     }
 }
