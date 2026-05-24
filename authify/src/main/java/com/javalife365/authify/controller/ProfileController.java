@@ -13,7 +13,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("/api/v1.0")
+//@RequestMapping("/api/v1.0")
 public class ProfileController {
 
     private final ProfileService profileService;
