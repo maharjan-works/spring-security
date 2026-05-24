@@ -12,17 +12,17 @@ import lombok.NoArgsConstructor;
 @Builder
 public class ProfileRequest {
 
-    @NotBlank (message = "Firstname is required")
+    @NotBlank (message = "Firstname must not be empty")
     private String firstName;
 
-    @NotBlank (message = "Lastname is required")
+    @NotBlank (message = "Lastname must not be empty")
     private String lastName;
 
-    @Email (message = "Email should be valid")
-    @NotNull (message = "Email is required")
+    @Email (message = "Email is invalid")
+    @NotNull (message = "Email must not be empty")
     private String email;
 
     @NotBlank(message = "Password is required")
-    @Size(min=5, message = "Password should be atleast 5 characters")
+    @Size(min=5, message = "Password must be atleast 5 characters")
     private String password;
 }
