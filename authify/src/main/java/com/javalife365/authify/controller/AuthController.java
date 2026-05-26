@@ -37,9 +37,7 @@ public class AuthController {
 
         try{
             authenticate(request.getEmail(), request.getPassword());
-
             final UserDetails userDetails = appUserDetailsService.loadUserByUsername(request.getEmail());
-
             //todo : create JWT token and place JWT to cookies
             final String jwtToken = jwtUtils.generateToken(userDetails);
             ResponseCookie cookie = ResponseCookie.from("jwt", jwtToken)
@@ -64,7 +62,7 @@ public class AuthController {
         }catch(Exception ex){
             Map<String, Object> error = new HashMap<>();
             error.put("error", true);
-            error.put("message","Authentication filed");
+            error.put("message","Authentication failed");
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(error);
         }
 
