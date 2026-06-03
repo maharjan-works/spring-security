@@ -25,6 +25,9 @@ dependencies {
     implementation("io.jsonwebtoken:jjwt-api:0.13.0")
     implementation("io.jsonwebtoken:jjwt-impl:0.13.0")
     implementation("io.jsonwebtoken:jjwt-jackson:0.13.0")
+    implementation("org.springframework.boot:spring-boot-starter-mail")
+    // Source: https://mvnrepository.com/artifact/com.sun.mail/jakarta.mail
+//    implementation("com.sun.mail:jakarta.mail:2.0.2")
 	compileOnly("org.projectlombok:lombok")
 	developmentOnly("org.springframework.boot:spring-boot-devtools")
 	runtimeOnly("com.mysql:mysql-connector-j")

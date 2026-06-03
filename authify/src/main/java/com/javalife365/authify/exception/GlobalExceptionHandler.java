@@ -8,11 +8,13 @@ import org.springframework.web.context.request.WebRequest;
 
 import java.sql.Timestamp;
 
+import static com.fasterxml.jackson.databind.type.LogicalType.DateTime;
+
 @RestControllerAdvice
 public class GlobalExceptionHandler {
 
     @ExceptionHandler(EmailAlreadyExistsException.class)
-    public ResponseEntity<ErrorMessage> handleEmailAlreadyExistsException(EmailAlreadyExistsException ex, WebRequest webRequest){
+    public ResponseEntity<ErrorMessage> handleEmailAlreadyExistsException(EmailAlreadyExistsException ex, WebRequest webRequest) {
         var errorMessage = ErrorMessage.builder()
                 .message(ex.getMessage())
                 .status(HttpStatus.CONFLICT.value())
@@ -20,6 +22,19 @@ public class GlobalExceptionHandler {
                 .requestedUrl(webRequest.getDescription(false))
                 .build();
         return ResponseEntity.status(409).body(errorMessage);
+    }
+
+    @ExceptionHandler(EmailSendFailException.class)
+    public ResponseEntity<ErrorMessage> handleEmailSendFailException(EmailSendFailException ex, WebRequest webRequest) {
+     var errorMessage = ErrorMessage.builder()
+             .message(ex.getMessage())
+             .status(HttpStatus.SERVICE_UNAVAILABLE.value())
+             .timestamp(new Timestamp(System.currentTimeMillis()))
+             .requestedUrl(webRequest.getDescription(false))
+             .build();
+     return ResponseEntity.status(HttpStatus.SERVICE_UNAVAILABLE.value()).body(errorMessage);
+
+
     }
 
 }

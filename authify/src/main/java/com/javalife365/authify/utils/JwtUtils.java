@@ -20,7 +20,7 @@ public class JwtUtils {
 
     private final SecretKey secretKey;
 
-    public JwtUtils(@Value("${jwt.secret.key}") String jwtSecretKey) {
+    public JwtUtils(@Value("${spring.jwt.secret.key}") String jwtSecretKey) {
         byte[] keyBytes = Decoders.BASE64.decode(jwtSecretKey);
         this.secretKey = Keys.hmacShaKeyFor(keyBytes);
     }

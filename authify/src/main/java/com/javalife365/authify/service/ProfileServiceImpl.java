@@ -8,6 +8,7 @@ import com.javalife365.authify.io.ProfileResponse;
 import com.javalife365.authify.mapper.ProfileMapper;
 import com.javalife365.authify.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -19,17 +20,26 @@ public class ProfileServiceImpl implements ProfileService{
 
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
+    private final EmailService emailService;
+
 
     @Override
     public ProfileResponse createProfile(ProfileRequest request) {
+
         if (!userRepository.existsByEmail(request.getEmail())){
             UserEntity newProfile = this.convertToUserEntity(request);
             newProfile = userRepository.save(newProfile);
+            emailService.sendWelcomeEmail(request.getEmail(), request.getFirstName() + " " + request.getLastName());
             return convertToProfileResponse(newProfile);
         }
         throw new EmailAlreadyExistsException("Email Already Exists");
     }
 
+    @Override
+    public ProfileResponse getProfile(String email) {
+       UserEntity  existingUser = userRepository.findByEmail(email).orElseThrow(() -> new UsernameNotFoundException("User not found: "+ email));
+       return  convertToProfileResponse(existingUser);
+    }
 
 
     private UserEntity convertToUserEntity(ProfileRequest request) {
