@@ -32,8 +32,8 @@ public class UserEntity {
     private String verifyOtp;
     private Boolean isAccountVerified;
     private Long verifyOtpExpiredAt;
-    private String resetOtp;
-    private Long resetOtpExpireAt;
+    private String passwordResetOtp;
+    private Long passwordResetOtpExpireAt;
 
     @CreationTimestamp
     @Column(updatable = false)

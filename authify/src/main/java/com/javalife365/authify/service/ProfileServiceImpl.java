@@ -5,18 +5,20 @@ import com.javalife365.authify.entity.UserEntity;
 import com.javalife365.authify.exception.EmailAlreadyExistsException;
 import com.javalife365.authify.io.ProfileRequest;
 import com.javalife365.authify.io.ProfileResponse;
-import com.javalife365.authify.mapper.ProfileMapper;
 import com.javalife365.authify.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.util.UUID;
+import java.util.concurrent.ThreadLocalRandom;
 
 @Service
 @RequiredArgsConstructor
-public class ProfileServiceImpl implements ProfileService{
+@Slf4j
+public class ProfileServiceImpl implements ProfileService {
 
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
@@ -26,7 +28,7 @@ public class ProfileServiceImpl implements ProfileService{
     @Override
     public ProfileResponse createProfile(ProfileRequest request) {
 
-        if (!userRepository.existsByEmail(request.getEmail())){
+        if (!userRepository.existsByEmail(request.getEmail())) {
             UserEntity newProfile = this.convertToUserEntity(request);
             newProfile = userRepository.save(newProfile);
             emailService.sendWelcomeEmail(request.getEmail(), request.getFirstName() + " " + request.getLastName());
@@ -37,8 +39,35 @@ public class ProfileServiceImpl implements ProfileService{
 
     @Override
     public ProfileResponse getProfile(String email) {
-       UserEntity  existingUser = userRepository.findByEmail(email).orElseThrow(() -> new UsernameNotFoundException("User not found: "+ email));
-       return  convertToProfileResponse(existingUser);
+        UserEntity existingUser = userRepository.findByEmail(email).orElseThrow(() -> new UsernameNotFoundException("User not found: " + email));
+        return convertToProfileResponse(existingUser);
+    }
+
+    @Override
+    public void sendPasswordResetOtp(String email) {
+        UserEntity existingUser = userRepository.findByEmail(email)
+                .orElseThrow(() -> new UsernameNotFoundException(email + " has not created account before."));
+
+        //todo: generate 6 digit otp
+        String otp = String.valueOf(ThreadLocalRandom.current().nextInt(100000, 1000000));
+        log.info("6 digits otp generated: {}", otp);
+
+        //todo: calculate expiry time (current time + 15mins )
+        long expiryTime = System.currentTimeMillis() + (1000 * 60 * 15);
+
+        //todo: update user entity
+        existingUser.setPasswordResetOtp(otp);
+        existingUser.setPasswordResetOtpExpireAt(expiryTime);
+
+        //todo: save to db
+        userRepository.save(existingUser);
+        log.info("user entity saved with otp in db");
+
+        //todo: send email with otp
+        log.info("Sending email to {} with otp: {}", existingUser.getEmail(), otp);
+        emailService.sendPasswordResetOtpEmail(existingUser.getEmail(), otp);
+        log.info("SUCCESS on sending email to {} with otp: {}", existingUser.getEmail(), otp);
+
     }
 
 
@@ -52,8 +81,8 @@ public class ProfileServiceImpl implements ProfileService{
                 .isAccountVerified(false)
                 .verifyOtp(null)
                 .verifyOtpExpiredAt(0L)
-                .resetOtp(null)
-                .resetOtpExpireAt(0L)
+                .passwordResetOtp(null)
+                .passwordResetOtpExpireAt(0L)
                 .build();
     }
 
