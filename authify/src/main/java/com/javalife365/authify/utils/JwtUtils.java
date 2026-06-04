@@ -69,6 +69,10 @@ public class JwtUtils {
         return extractExpiration(token).before(new Date());
     }
 
+    public Date extractIssuedAt(String token){
+        return extractClaim(token, Claims::getIssuedAt);
+    }
+
 
     public Boolean validateToken(String token, UserDetails userDetails){
         final String email = extractEmail(token);

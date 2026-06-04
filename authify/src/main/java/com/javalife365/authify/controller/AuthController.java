@@ -5,6 +5,7 @@ import com.javalife365.authify.io.AuthResponse;
 import com.javalife365.authify.service.AppUserDetailsService;
 import com.javalife365.authify.utils.JwtUtils;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseCookie;
@@ -13,17 +14,21 @@ import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.DisabledException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.annotation.CurrentSecurityContext;
 import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.time.Duration;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 
 @RestController
 @RequiredArgsConstructor
+@Slf4j
 public class AuthController {
 
 
@@ -34,12 +39,15 @@ public class AuthController {
 
     @PostMapping("/login")
     public ResponseEntity<?> login(@RequestBody AuthRequest request){
-
+        log.info("credential provided - email: {} and password: {}", request.getEmail(), request.getEmail());
         try{
             authenticate(request.getEmail(), request.getPassword());
+            log.info("AUTHENTICATION SUCCESS");
             final UserDetails userDetails = appUserDetailsService.loadUserByUsername(request.getEmail());
             //todo : create JWT token and place JWT to cookies
             final String jwtToken = jwtUtils.generateToken(userDetails);
+            final Date issuedAt= jwtUtils.extractIssuedAt(jwtToken);
+            final Date expiresAt = jwtUtils.extractExpiration(jwtToken);
             ResponseCookie cookie = ResponseCookie.from("jwt", jwtToken)
                     .httpOnly(true)
                     .path("/")
@@ -48,7 +56,7 @@ public class AuthController {
                     .build();
             return ResponseEntity.ok()
                     .header(HttpHeaders.SET_COOKIE, cookie.toString())
-                    .body(new AuthResponse(request.getEmail(),jwtToken));
+                    .body(new AuthResponse(request.getEmail(),jwtToken,issuedAt,expiresAt));
         }catch(BadCredentialsException ex ){
             Map<String, Object> error = new HashMap<>();
             error.put("error", true);
@@ -69,7 +77,15 @@ public class AuthController {
     }
 
     private void authenticate(String email, String password) {
+        log.info("Authenticating credentials with authentication manager");
         authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(email, password));
+    }
+
+
+    @GetMapping("/is-authenticated")
+    public ResponseEntity<Boolean> isAuthenticated(@CurrentSecurityContext(expression = "authentication?.name") String email){
+        log.info("Authenticated email: {}", email);
+        return ResponseEntity.ok(email != null);
     }
 
 }
