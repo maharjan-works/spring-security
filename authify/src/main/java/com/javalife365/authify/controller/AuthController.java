@@ -3,6 +3,7 @@ package com.javalife365.authify.controller;
 import com.javalife365.authify.io.AuthRequest;
 import com.javalife365.authify.io.AuthResponse;
 import com.javalife365.authify.service.AppUserDetailsService;
+import com.javalife365.authify.service.ProfileService;
 import com.javalife365.authify.utils.JwtUtils;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -16,10 +17,8 @@ import org.springframework.security.authentication.DisabledException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.annotation.CurrentSecurityContext;
 import org.springframework.security.core.userdetails.UserDetails;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.time.Duration;
 import java.util.Date;
@@ -35,6 +34,7 @@ public class AuthController {
     private final AuthenticationManager authenticationManager;
     private final AppUserDetailsService appUserDetailsService;
     private final JwtUtils jwtUtils;
+    private final ProfileService profileService;
 
 
     @PostMapping("/login")
@@ -86,6 +86,16 @@ public class AuthController {
     public ResponseEntity<Boolean> isAuthenticated(@CurrentSecurityContext(expression = "authentication?.name") String email){
         log.info("Authenticated email: {}", email);
         return ResponseEntity.ok(email != null);
+    }
+
+
+    @PostMapping("/password-reset-otp")
+    public void sendPasswordResetOtp(@RequestParam String email){
+        try{
+            profileService.sendPasswordResetOtp(email);
+        }catch (Exception ex){
+            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, ex.getMessage());
+        }
     }
 
 }

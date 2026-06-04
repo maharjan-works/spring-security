@@ -1,5 +1,6 @@
 package com.javalife365.authify.service;
 
+import com.javalife365.authify.exception.EmailSendFailException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -40,5 +41,25 @@ public class EmailService {
         }
     }
 
+
+    @Async
+    public void sendPasswordResetOtpEmail(String to, String otp){
+        try {
+            SimpleMailMessage message = new SimpleMailMessage();
+            message.setFrom(fromEmail);
+            message.setTo(to);
+            message.setSubject("Password Reset OTP");
+            message.setText("Hi, \n\n" +
+                    "Your OTP to reset your password is " + otp + "\n" +
+                    "This OTP expires in 15 mins. \n\n" +
+                    "Regards,\n" +
+                    "The Support Team"
+            );
+            mailSender.send(message);
+        }catch(EmailSendFailException ex){
+            log.info("Exception occurred: {} ",ex.toString());
+            throw new EmailSendFailException("Unable to send email with otp");
+        }
+    }
 
 }
