@@ -32,9 +32,30 @@ public class GlobalExceptionHandler {
              .timestamp(new Timestamp(System.currentTimeMillis()))
              .requestedUrl(webRequest.getDescription(false))
              .build();
-     return ResponseEntity.status(HttpStatus.SERVICE_UNAVAILABLE.value()).body(errorMessage);
+     return ResponseEntity.status(HttpStatus.SERVICE_UNAVAILABLE).body(errorMessage);
+    }
+
+    @ExceptionHandler(InvalidOtpException.class)
+    public ResponseEntity<ErrorMessage> handleInvalidOtpException(InvalidOtpException ex, WebRequest webRequest){
+        var errorMessage = ErrorMessage.builder()
+                .message(ex.getMessage())
+                .status(HttpStatus.CONFLICT.value())
+                .timestamp(new Timestamp(System.currentTimeMillis()))
+                .requestedUrl(webRequest.getDescription(false))
+                .build();
+        return ResponseEntity.status(HttpStatus.CONFLICT).body(errorMessage);
+    }
 
 
+    @ExceptionHandler(OtpAlreadyExpiredException.class)
+    public ResponseEntity<ErrorMessage> handleOtpAlreadyExpiredException(OtpAlreadyExpiredException ex, WebRequest webRequest){
+        var msg = ErrorMessage.builder()
+                .message(ex.getMessage())
+                .status(HttpStatus.CONFLICT.value())
+                .timestamp(new Timestamp(System.currentTimeMillis()))
+                .requestedUrl(webRequest.getDescription(false))
+                .build();
+        return ResponseEntity.status(HttpStatus.CONFLICT).body(msg);
     }
 
 }

@@ -10,4 +10,6 @@ public interface ProfileService {
     ProfileResponse getProfile(String email);
 
     void sendPasswordResetOtp(String email);
+
+    void resetPassword(String email, String otp, String newPassword);
 }

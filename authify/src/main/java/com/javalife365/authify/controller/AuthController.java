@@ -2,9 +2,11 @@ package com.javalife365.authify.controller;
 
 import com.javalife365.authify.io.AuthRequest;
 import com.javalife365.authify.io.AuthResponse;
+import com.javalife365.authify.io.ResetPasswordRequest;
 import com.javalife365.authify.service.AppUserDetailsService;
 import com.javalife365.authify.service.ProfileService;
 import com.javalife365.authify.utils.JwtUtils;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpHeaders;
@@ -93,6 +95,15 @@ public class AuthController {
     public void sendPasswordResetOtp(@RequestParam String email){
         try{
             profileService.sendPasswordResetOtp(email);
+        }catch (Exception ex){
+            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, ex.getMessage());
+        }
+    }
+
+    @PostMapping("/reset-password")
+    public void resetPassword(@Valid @RequestBody ResetPasswordRequest request){
+        try{
+            profileService.resetPassword(request.getEmail(), request.getOtp(), request.getNewPassword());
         }catch (Exception ex){
             throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, ex.getMessage());
         }
