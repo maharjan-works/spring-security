@@ -62,4 +62,31 @@ public class EmailService {
         }
     }
 
+    @Async
+    public void sendEmailAfterPasswordUpdated(String to){
+        try{
+            SimpleMailMessage message = new SimpleMailMessage();
+            message.setFrom(fromEmail);
+            message.setTo(to);
+            message.setSubject("Your Password Updated Successfully");
+            message.setText(
+                    """
+                    Hi,
+                    
+                    Your password has been updated successfully.
+                    Now, you can login with new password.
+                    
+                    Regards,
+                    Authify Support Team
+                    """
+            );
+            log.info("sending email to {} after new password is updated", to);
+            mailSender.send(message);
+            log.info("Sent email to {} successfully after new password is updated", to);
+        }catch(EmailSendFailException ex){
+            log.info("Exception occurred: {}", ex.toString());
+            throw new EmailSendFailException("Unable to send email after new password updated");
+        }
+    }
+
 }
