@@ -14,6 +14,7 @@ import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import java.sql.Timestamp;
 import java.util.UUID;
 import java.util.concurrent.ThreadLocalRandom;
 
@@ -93,6 +94,59 @@ public class ProfileServiceImpl implements ProfileService {
         log.info("new password: {} has been updated for {} in db successfully.", passwordEncoder.encode(newPassword), email);
         //todo: send email about password has been updated successfully
         emailService.sendEmailAfterPasswordUpdated(existingUser.getEmail());
+    }
+
+    @Override
+    public void sendEmailVerificationOtp(String email) {
+        UserEntity existingUser = userRepository.findByEmail(email)
+                .orElseThrow(() -> new UsernameNotFoundException("User Not Found: " + email));
+
+        if (existingUser.getIsAccountVerified() != null && existingUser.getIsAccountVerified()){
+            log.info("account with {} is already verified", existingUser.getEmail());
+            return;
+        }
+
+        //Generate 6 digits OTP
+        String otp = String.valueOf(ThreadLocalRandom.current().nextInt(100000, 1000000));
+
+        //otp expires after 24 hours
+        long expiryTime = System.currentTimeMillis() + (1000*60*60*24);
+
+        //update the user entity
+        existingUser.setVerifyOtp(otp);
+        existingUser.setVerifyOtpExpiredAt(expiryTime);
+
+        //save to the db
+        userRepository.save(existingUser);
+        log.info("saved email verification otp: {} and its expiry time: {} in db", otp,expiryTime);
+
+        //todo: email current user with email verification otp and message saying its expires after 24 hours
+        emailService.sendEmailWithVerificationOtp(existingUser.getEmail(),existingUser.getFirstName(),otp);
+    }
+
+    @Override
+    public void verifyEmailVerificationOtp(String email, String otp) {
+        UserEntity existingUser  = userRepository.findByEmail(email).orElseThrow(() -> new UsernameNotFoundException("User " + email + " not exists"));
+        log.info("current user: {}, request otp: {} and db verify otp: {}",email, otp, existingUser.getVerifyOtp());
+        if(existingUser.getVerifyOtp().isEmpty() || !existingUser.getVerifyOtp().equals(otp)){
+            log.info("Error occurred: invalid OTP");
+            throw new InvalidOtpException("Invalid OTP");
+        }
+        if (existingUser.getVerifyOtpExpiredAt() < System.currentTimeMillis()){
+            log.info("Error occurred: OTP is expired");
+            throw new OtpAlreadyExpiredException("OTP already expired");
+        }
+        log.info("Email verification OTP validated successfully");
+        existingUser.setIsAccountVerified(true);
+        existingUser.setVerifyOtp(null);
+        existingUser.setVerifyOtpExpiredAt(null);
+        existingUser.setUpdatedAt(new Timestamp(System.currentTimeMillis()));
+        userRepository.save(existingUser);
+        log.info("account verified and Verification OPT and its expiration time reset and save to db");
+
+        //todo: send email saying your email address is verified.
+        emailService.sendEmailToVerifiedEmail(existingUser.getEmail(), existingUser.getFirstName());
+
     }
 
 

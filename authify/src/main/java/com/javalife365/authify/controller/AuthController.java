@@ -32,12 +32,10 @@ import java.util.Map;
 @Slf4j
 public class AuthController {
 
-
     private final AuthenticationManager authenticationManager;
     private final AppUserDetailsService appUserDetailsService;
     private final JwtUtils jwtUtils;
     private final ProfileService profileService;
-
 
     @PostMapping("/login")
     public ResponseEntity<?> login(@RequestBody AuthRequest request){
@@ -108,5 +106,33 @@ public class AuthController {
             throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, ex.getMessage());
         }
     }
+
+    @PostMapping("/send-email-verification-otp")
+    public void sendEmailVerifyOtp(@CurrentSecurityContext(expression = "authentication?.name") String email){
+        try {
+            profileService.sendEmailVerificationOtp(email);
+        }catch (Exception ex){
+            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, ex.getMessage());
+        }
+
+    }
+
+    @PostMapping("/verify-email-verification-otp")
+    public void verifyEmailVerificationOtp(@RequestBody Map<String, Object> request,
+                                           @CurrentSecurityContext(expression = "authentication?.name") String email){
+        if (request.get("otp").toString().isBlank()){
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Missing OTP");
+        }
+        try{
+            profileService.verifyEmailVerificationOtp(email, request.get("otp").toString());
+        }catch(Exception ex){
+            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, ex.getMessage());
+        }
+
+    }
+
+
+
+
 
 }

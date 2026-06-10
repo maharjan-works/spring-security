@@ -34,16 +34,16 @@ public class EmailService {
             log.info("Sending email from: {} to: {} after registering", fromEmail, to);
             mailSender.send(message);
             log.info("SUCCESS on sending email from: {} to: {} after registering", fromEmail, to);
-        }catch(MailAuthenticationException ex){
+        } catch (MailAuthenticationException ex) {
             log.info("Authentication Failed: {} ", ex.toString());
         } catch (Exception ex) {
-            log.info("Exception occurred: {}",ex.toString());
+            log.info("Exception occurred: {}", ex.toString());
         }
     }
 
 
     @Async
-    public void sendPasswordResetOtpEmail(String to, String otp){
+    public void sendPasswordResetOtpEmail(String to, String otp) {
         try {
             SimpleMailMessage message = new SimpleMailMessage();
             message.setFrom(fromEmail);
@@ -56,37 +56,73 @@ public class EmailService {
                     "The Support Team"
             );
             mailSender.send(message);
-        }catch(EmailSendFailException ex){
-            log.info("Exception occurred: {} ",ex.toString());
+        } catch (EmailSendFailException ex) {
+            log.info("Exception occurred: {} ", ex.toString());
             throw new EmailSendFailException("Unable to send email with otp");
         }
     }
 
     @Async
-    public void sendEmailAfterPasswordUpdated(String to){
-        try{
+    public void sendEmailAfterPasswordUpdated(String to) {
+        try {
             SimpleMailMessage message = new SimpleMailMessage();
             message.setFrom(fromEmail);
             message.setTo(to);
             message.setSubject("Your Password Updated Successfully");
             message.setText(
                     """
-                    Hi,
-                    
-                    Your password has been updated successfully.
-                    Now, you can login with new password.
-                    
-                    Regards,
-                    Authify Support Team
-                    """
+                            Hi,
+                            
+                            Your password has been updated successfully.
+                            Now, you can login with new password.
+                            
+                            Regards,
+                            Authify Support Team
+                            """
             );
             log.info("sending email to {} after new password is updated", to);
             mailSender.send(message);
             log.info("Sent email to {} successfully after new password is updated", to);
-        }catch(EmailSendFailException ex){
+        } catch (EmailSendFailException ex) {
             log.info("Exception occurred: {}", ex.toString());
             throw new EmailSendFailException("Unable to send email after new password updated");
         }
     }
 
+    @Async
+    public void sendEmailWithVerificationOtp(String to, String name, String otp) {
+        try {
+            SimpleMailMessage message = new SimpleMailMessage();
+            message.setFrom(this.fromEmail);
+            message.setTo(to);
+            message.setSubject("Email Verification OTP");
+            message.setText("Hi " + name + ", \n\n" +
+                    "Your email verification OTP is " + otp + ".\n" +
+                    "This OTP expires after 24 hours. \n\n" +
+                    "Regards,\n" +
+                    "Authify Support Team"
+            );
+            log.info("sending email with verification OTP to current user: {}", to);
+            mailSender.send(message);
+            log.info("sent email with verification OTP to {} successfully", to);
+        } catch (EmailSendFailException ex) {
+            log.info("Failed to send email with OTP verification code");
+            throw new EmailSendFailException("Unable to send email with verification code");
+        }
+
+    }
+
+    @Async
+    public void sendEmailToVerifiedEmail(String to, String name) {
+        SimpleMailMessage message = new SimpleMailMessage();
+        message.setFrom(fromEmail);
+        message.setTo(to);
+        message.setSubject("Your Email Is Verified");
+        message.setText("Hi " + String.valueOf(name.charAt(0)).toUpperCase() + name.substring(1)+ ",\n\n" +
+                "Thank you for your email verification with us. \n\n" +
+                "Regards,\n" +
+                "Authify Team"
+        );
+        mailSender.send(message);
+    }
 }

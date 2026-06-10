@@ -2,7 +2,6 @@ package com.javalife365.authify.controller;
 
 import com.javalife365.authify.io.ProfileRequest;
 import com.javalife365.authify.io.ProfileResponse;
-import com.javalife365.authify.service.EmailService;
 import com.javalife365.authify.service.ProfileService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
