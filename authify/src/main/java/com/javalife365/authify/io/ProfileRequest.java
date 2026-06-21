@@ -19,10 +19,10 @@ public class ProfileRequest {
     private String lastName;
 
     @Email (message = "Email is invalid")
-    @NotNull (message = "Email must not be empty")
+    @NotBlank (message = "Email must not be empty")
     private String email;
 
     @NotBlank(message = "Password is required")
-    @Size(min=5, message = "Password must be atleast 5 characters")
+    @Size(min=5, message = "Password must be at least 5 characters")
     private String password;
 }
